@@ -1,15 +1,27 @@
 #include <stdio.h>
 #include <stdint.h>
 
+typedef uint_least32_t u32;
+typedef uint_least16_t u16;
+typedef uint_least8_t   u8;
+typedef  int_least8_t   s8;
+
+typedef union {
+	struct {
+		u8 bank;
+		u16 val;
+	} __packed;
+	u32 W: 24;
+} br;
+
+char arr[3];
+
 uint8_t ram[256];
 
 int main(){
-	ram[12] = 0xE5;
-	ram[13] = 0xA4;
+	u8 val = 0x04;
 
-	uint8_t * t0 = &ram[12];
-	uint16_t * t1 = (uint16_t *) t0;
-
-	printf("%x %x\n", *t1, *t0);
+	printf("%x\n", val);
+	printf("%x\n", val << 16);
 	return 0;
 }
