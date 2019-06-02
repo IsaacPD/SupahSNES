@@ -44,6 +44,6 @@ struct CPU {
 
 struct CPU cpu;
 
-u8 retrieve_operands(int opcode);
+u32 get_operands(int opcode);
 
 #endif

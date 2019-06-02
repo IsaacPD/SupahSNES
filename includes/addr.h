@@ -30,24 +30,53 @@ static inline u32 AbsoluteIndirect(u8 nbytes) // (ABSOLUTE), [ABSOLUTE], (ABSOLU
 	return nbytes == 2 ? addr | (cpu.PCB.bank << BITS) : addr;
 }
 
-template<bool e=false>
-static inline u32 Direct(u8 nbytes, u16 offset=0) // DIRECT, DIRECT X/Y
+template<bool e=false, bool X=false, bool Y=false>
+static inline u32 Direct(u8 nbytes) // DIRECT, DIRECT X/Y
 {
 	u16 addr = Immediate<>();
 
-	if (e) addr = cpu.DPB.val + u8(addr + offset);
-	else addr += cpu.DPB.val + offset;
+	if (X) addr += cpu.X.W;
+	if (Y) addr += cpu.Y.W
+	if (e) addr = cpu.DPB.val + u8(addr);
+	else addr += cpu.DPB.val;
 	return READ(addr, nbytes);
 }
 
-template<bool e=false>
-static inline u32 DirectIndirect(u8 nbytes, u16 offset=0) // (DIRECT), [DIRECT]
+template<bool e=false, bool X=false, bool Y=false, u8 nbytes=2>
+static inline u32 DirectIndirect() // (DIRECT), [DIRECT], (DIRECT, X), (DIRECT), Y, [DIRECT], Y
 {
-	u16 addr = Immediate<>();
-
-	if (e) addr = cpu.DPB.val + u8(addr + offset);
-	else addr += cpu.DPB.val + offset;
+	u32 addr = nbytes == 2 ? (cpu.PCB.bank << BITS) | Direct<e, X>(nbytes) : Direct<e, X>(nbytes);
+	if (Y) addr += cpu.Y.w;
+	
 	return READ(addr, nbytes);
+}
+
+template<bool X=false, bool jump=false>
+static inline u32 Long(u8 nbytes)
+{
+	u32 addr = u32(Immediate<u24>());
+	if (jump) return addr;
+	if (X) addr += cpu.X.W;
+	return READ(addr, nbytes);
+}
+
+template<typename T>
+static inline void Relative() // Only branch statements use rel8/16 so the actual branch is done here
+{
+	s16 offset = Immediate<T>();
+	cpu.PCB.val += offset;
+}
+
+static inline u32 Stack()
+{
+	u16 addr = Immediate<>() + cpu.SP.W;
+	return READ(addr, WORD);
+}
+
+static inline u32 StackIndirect()
+{
+	u16 addr = Stack() + cpu.Y.W;
+	return READ(addr, WORD);
 }
 
 #endif
