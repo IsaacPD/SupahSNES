@@ -8,4 +8,4 @@ test.o: test.cc
 	$(CC) -c -o "$@" "$<" $(CCFLAGS)
 
 clean:
-	rm *.o *.exe
+	rm *.o *.exe test
